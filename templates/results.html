@@ -5,31 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Results</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .result-container {
+            max-width: 700px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .result-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .result-title {
+            font-size: 1.2rem;
+            color: #1a0dab;
+            text-decoration: none;
+        }
+        .result-url {
+            font-size: 0.85rem;
+            color: #006621;
+        }
+        .result-snippet {
+            font-size: 0.95rem;
+            color: #4d5156;
+        }
+        .highlight {
+            background-color: #ffff99;
+            font-weight: bold;
+        }
+        .header-info {
+            font-size: 1rem;
+            color: #202124;
+        }
+        .error-message {
+            color: #d9534f;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
         <h2 class="text-center mb-4">Search Results</h2>
-        {% if results %}
-            <ul class="list-group">
-                {% for result in results %}
-                    <li class="list-group-item">
-                        <h5><a href="{{ result['url'] }}" target="_blank">{{ result['title'] }}</a></h5>
-                        <p>{{ result['snippet'] }}</p>
-                        <p>Similarity Score: <strong>{{ result['similarity_score'] }}%</strong></p>
-                    </li>
-                {% endfor %}
-            </ul>
-            {% if download_format != 'none' %}
-                <div class="mt-3">
-                    <a href="{{ url_for('download_file', format=download_format) }}" class="btn btn-success">Download Results as {{ download_format.upper() }}</a>
-                </div>
-            {% endif %}
+        
+        <!-- Display error if present -->
+        {% if error %}
+            <div class="error-message">
+                <p><strong>Error {{ status_code }}:</strong> {{ error }}</p>
+            </div>
+            <div class="text-center mt-4">
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Go Back</a>
+            </div>
         {% else %}
-            <p class="text-center">No results found.</p>
+            <!-- Display search query and number of results -->
+            <div class="header-info mb-4">
+                <p><strong>Search Query:</strong> "{{ search_query }}"</p>
+                <p><strong>Number of Results:</strong> {{ results|length }}</p>
+            </div>
+
+            {% if results %}
+                <div class="list-group result-container">
+                    {% for result in results %}
+                        <div class="result-item">
+                            <!-- Title as a clickable link -->
+                            <a href="{{ result['url'] }}" target="_blank" class="result-title">{{ result['title'] }}</a>
+                            <div class="result-url">{{ result['url'] }}</div>
+                            
+                            <!-- Snippet with highlighted search terms -->
+                            <p class="result-snippet">
+                                {% set snippet = result['snippet'] %}
+                                {% for word in search_query.split() %}
+                                    {% set snippet = snippet | replace(word, '<span class="highlight">' + word + '</span>') %}
+                                {% endfor %}
+                                {{ snippet | safe }}
+                            </p>
+
+                            <!-- Display similarity score -->
+                            <p class="text-muted">Similarity Score: {{ result['similarity_score'] }}%</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if download_format != 'none' %}
+                    <div id="download-section" class="navigation-buttons mt-4">
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Go Back</a>
+                        <a href="{{ url_for('download_file', format=download_format) }}" class="btn btn-success">Download Results as {{ download_format.upper() }}</a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p class="text-center">No results found.</p>
+            {% endif %}
         {% endif %}
-        <div class="mt-4">
-            <a href="{{ url_for('index') }}" class="btn btn-secondary btn-block">Go Back</a>
-        </div>
     </div>
 </body>
 </html>
