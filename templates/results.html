@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">Search Results</h2>
+        {% if results %}
+            <ul class="list-group">
+                {% for result in results %}
+                    <li class="list-group-item">
+                        <h5><a href="{{ result['url'] }}" target="_blank">{{ result['title'] }}</a></h5>
+                        <p>{{ result['snippet'] }}</p>
+                        <p>Similarity Score: <strong>{{ result['similarity_score'] }}%</strong></p>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% if download_format != 'none' %}
+                <div class="mt-3">
+                    <a href="{{ url_for('download_file', format=download_format) }}" class="btn btn-success">Download Results as {{ download_format.upper() }}</a>
+                </div>
+            {% endif %}
+        {% else %}
+            <p class="text-center">No results found.</p>
+        {% endif %}
+        <div class="mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary btn-block">Go Back</a>
+        </div>
+    </div>
+</body>
+</html>
