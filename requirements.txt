@@ -3,3 +3,6 @@ lxml
 Faker
 fuzzywuzzy
 deep-translator
+Flask
+pandas
+xlsxwriter
