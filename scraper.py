@@ -1,4 +1,5 @@
 from requests import Session
+from requests.exceptions import HTTPError, RequestException
 from faker import Faker
 from lxml import html
 from time import sleep
@@ -6,7 +7,6 @@ from fuzzywuzzy import fuzz
 from deep_translator import GoogleTranslator
 from exceptions import GoogleSearchError
 import unicodedata
-
 
 class GoogleSearch:
     def __init__(self, language='en', max_results=10):
@@ -29,20 +29,40 @@ class GoogleSearch:
         while len(results) < self.max_results:
             url = f'https://www.google.com/search?q={query}&num={increment}&hl={self.language}&start={start}&gbv=1'
             try:
-                global response
                 response = self.session.get(url, timeout=10, headers={'User-Agent': self.fake_agent.user_agent()})
                 response.raise_for_status()
+            except HTTPError as http_err:
+                # Handle specific HTTP errors with status code and message
+                error_message = f"HTTP error occurred: {http_err.response.status_code} - {http_err.response.reason}"
+                print(error_message)
+                return {"error": error_message, "status_code": http_err.response.status_code}
+            except RequestException as req_err:
+                # Handle other requests exceptions
+                error_message = f"Request error occurred: {req_err}"
+                print(error_message)
+                return {"error": error_message, "status_code": None}
             except Exception as e:
-                raise GoogleSearchError(f"Error fetching search results: {e}")
+                # Catch-all for any other errors
+                error_message = f"An unexpected error occurred: {e}"
+                print(error_message)
+                return {"error": error_message, "status_code": None}
             
             if response.status_code == 429:
-                print('Captcha detected! Exiting search.')
-                return None
+                error_message = "Captcha detected! Exiting search."
+                print(error_message)
+                return {"error": error_message, "status_code": 429}
             
-            tree = html.fromstring(response.text)
-            search_elements = tree.xpath("//div[./div/a//h3]")
-            
+            try:
+                tree = html.fromstring(response.text)
+                search_elements = tree.xpath("//div[./div/a//h3]")
+            except Exception as parse_err:
+                # Handle parsing errors
+                error_message = f"Error parsing HTML content: {parse_err}"
+                print(error_message)
+                return {"error": error_message, "status_code": None}
+
             if not search_elements:
+                print("No search elements found.")
                 return results
 
             for element in search_elements:
@@ -71,7 +91,9 @@ class GoogleSearch:
         try:
             return GoogleTranslator(source='auto', target=target_lang).translate(text)
         except Exception as e:
-            raise GoogleSearchError(f"Translation error: {e}")
+            error_message = f"Translation error: {e}"
+            print(error_message)
+            return {"error": error_message, "status_code": None}
 
     def calculate_similarity(self, input_text, snippet_text):
         """Calculate the similarity between input text and the snippet."""
