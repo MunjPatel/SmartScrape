@@ -4,14 +4,12 @@ import json
 import pandas as pd
 import os
 
-with open("languages.json", 'r') as languages:
-    langs = json.load(languages)
+# Load supported languages from JSON file
+with open("languages.json", 'r') as languages_file:
+    LANGUAGES = json.load(languages_file)
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Needed for flashing messages
-
-# JSON containing supported languages
-LANGUAGES = langs
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -38,16 +36,16 @@ def index():
         # Perform the search
         search_tool = GoogleSearch(language=language, max_results=num_results)
         results = search_tool.search(search_query)
-        
-        if results:
-            # Sort results by similarity score in descending order
-            results = sorted(results, key=lambda x: x['similarity_score'], reverse=True)
-            # Save results in session or temp file for download
-            file_path = save_results(results, download_format) if download_format != 'none' else None
-            return render_template('results.html', results=results, download_format=download_format, file_path=file_path)
-        else:
-            flash("No results found or an error occurred. Please try again.", "error")
-            return redirect(url_for('index'))
+
+        # Check if results contain an error
+        if isinstance(results, dict) and "error" in results:
+            # If an error occurred, pass the error message and code to the template
+            return render_template('results.html', error=results["error"], status_code=results.get("status_code"))
+
+        # If no error, proceed with normal sorting and rendering
+        results = sorted(results, key=lambda x: x['similarity_score'], reverse=True)
+        file_path = save_results(results, download_format) if download_format != 'none' else None
+        return render_template('results.html', results=results, search_query=search_query, download_format=download_format, file_path=file_path)
 
     return render_template('index.html', languages=LANGUAGES)
 
