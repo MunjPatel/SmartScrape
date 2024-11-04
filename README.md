@@ -48,7 +48,7 @@ SmartScrape directly scrapes Google’s search pages, allowing:
 ## Disadvantages
 
 - May encounter CAPTCHAs or rate limits.
-- Risk of IP blocking if used aggressively.
+- Risk of IP blocking of backend server if used aggressively.
 - Potential legal or ethical implications when scraping certain data.
 
 ## Features
@@ -65,6 +65,7 @@ SmartScrape directly scrapes Google’s search pages, allowing:
 ### 1. Try in Production
 
 SmartScrape is deployed on Render. You can test it here: [SmartScrape Production](https://smartscrape.onrender.com).
+**Note: The app may take a few minutes to load, as the backend instance shuts down after 50 seconds of inactivity.**
 
 ### 2. Clone the Repository
 
