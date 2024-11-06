@@ -65,7 +65,7 @@ SmartScrape directly scrapes Google’s search pages, allowing:
 ### 1. Try in Production
 
 SmartScrape is deployed on Render. You can test it here: [SmartScrape Production](https://smartscrape.onrender.com).
-**Note: The app may take a few minutes to load, as the backend instance shuts down after 50 seconds of inactivity.**
+**Note: The app may take a few minutes to load, as the backend instance is configured to shut down after 50 seconds of inactivity. Additionally, excessive use of the deployed API may result in a 429 error due to temporary IP blocking of the backend server. In such cases, I would recommended to run the app locally.**
 
 ### 2. Clone the Repository
 
